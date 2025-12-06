@@ -11,6 +11,7 @@ import json
 st.set_page_config(page_title="ZANT - System ZUS", layout="wide")
 st.title("ZANT - System Wypadkowy ZUS")
 
+
 def generate_accident_notification_pdf(accident_data):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
@@ -33,13 +34,22 @@ def generate_accident_notification_pdf(accident_data):
     if "uzasadnienie" in accident_data:
         story.append(Paragraph("<b>Uzasadnienie:</b>", styles['h2']))
         story.append(Paragraph(accident_data['uzasadnienie'], styles['Normal']))
+
     if "niezgodnosci_lub_braki" in accident_data and accident_data['niezgodnosci_lub_braki'] != "Brak":
         story.append(Paragraph("<b>Wykryte niezgodności / Braki:</b>", styles['h2']))
-        story.append(Paragraph(accident_data['niezgodnosci_lub_braki'], styles['Normal']))
+
+        niezgodnosci_data = accident_data['niezgodnosci_lub_braki']
+        if isinstance(niezgodnosci_data, list):
+            niezgodnosci_text = ", ".join(niezgodnosci_data)
+        else:
+            niezgodnosci_text = str(niezgodnosci_data)
+
+        story.append(Paragraph(niezgodnosci_text, styles['Normal']))
 
     doc.build(story)
     buffer.seek(0)
     return buffer.getvalue()
+
 
 def generate_explanation_pdf(chat_messages):
     buffer = BytesIO()
