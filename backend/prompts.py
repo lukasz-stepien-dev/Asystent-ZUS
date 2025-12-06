@@ -18,6 +18,7 @@ MIEJSCE wypadku.
 PRZYCZYNĘ (co się stało?).
 SKUTKI (jaki uraz?).
 Zadawaj po jednym pytaniu naraz. Nie używaj żargonu prawnego.
+Po uzyskaniu wyczerpującej i poprawnej odpowidzi przejdź do uzyskiwania kolejnych.
 Po zebraniu wszystkich danych podsumuj zgłoszenie.
 """
 
