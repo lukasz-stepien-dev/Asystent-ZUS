@@ -6,65 +6,117 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from io import BytesIO
 import datetime
-import json
+import re
 
 st.set_page_config(page_title="ZANT - System ZUS", layout="wide")
 st.title("ZANT - System Wypadkowy ZUS")
-
 
 def generate_accident_notification_pdf(accident_data):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
 
+    styles.add(ParagraphStyle(name='CustomNormal', parent=styles['Normal'], fontSize=10, leading=14))
+    styles.add(ParagraphStyle(name='CustomHeading1', parent=styles['h1'], fontSize=16, leading=18, spaceAfter=12))
+    styles.add(ParagraphStyle(name='CustomHeading2', parent=styles['h2'], fontSize=12, leading=14, spaceBefore=10,
+                              spaceAfter=6))
+
     story = []
-    story.append(Paragraph("<b>Zawiadomienie o Wypadku Przy Pracy</b>", styles['h1']))
+    story.append(Paragraph("<b>Zawiadomienie o Wypadku Przy Pracy</b>", styles['CustomHeading1']))
     story.append(Spacer(1, 12))
 
-    story.append(Paragraph(f"<b>Data zgłoszenia:</b> {datetime.date.today().strftime('%d-%m-%Y')}", styles['Normal']))
+    story.append(Paragraph(f"<b>Data generacji dokumentu:</b> {datetime.date.today().strftime('%d-%m-%Y')}",
+                           styles['CustomNormal']))
     story.append(Spacer(1, 6))
 
-    story.append(Paragraph("<b>Dane Wypadku:</b>", styles['h2']))
-    for key, value in accident_data.get("karta_wypadku", {}).items():
-        story.append(Paragraph(f"<b>{key.replace('_', ' ').capitalize()}:</b> {value}", styles['Normal']))
+    story.append(Paragraph("<b>Dane Wypadku:</b>", styles['CustomHeading2']))
+    karta_wypadku = accident_data.get("karta_wypadku", {})
+    if karta_wypadku:
+        story.append(Paragraph(f"<b>Data zdarzenia:</b> {karta_wypadku.get('data_zdarzenia', 'Brak danych')}",
+                               styles['CustomNormal']))
+        story.append(Paragraph(f"<b>Godzina zdarzenia:</b> {karta_wypadku.get('godzina_zdarzenia', 'Brak danych')}",
+                               styles['CustomNormal']))
+        story.append(Paragraph(f"<b>Miejsce wypadku:</b> {karta_wypadku.get('miejsce_wypadku', 'Brak danych')}",
+                               styles['CustomNormal']))
+        story.append(Paragraph(
+            f"<b>Planowana godzina rozpoczęcia pracy:</b> {karta_wypadku.get('planowana_godzina_rozpoczecia_pracy', 'Brak danych')}",
+            styles['CustomNormal']))
+        story.append(Paragraph(
+            f"<b>Planowana godzina zakończenia pracy:</b> {karta_wypadku.get('planowana_godzina_zakonczenia_pracy', 'Brak danych')}",
+            styles['CustomNormal']))
+        story.append(Paragraph(
+            f"<b>Rodzaj czynności do momentu wypadku:</b> {karta_wypadku.get('rodzaj_czynnosci_do_wypadku', 'Brak danych')}",
+            styles['CustomNormal']))
+        story.append(Paragraph(
+            f"<b>Opis okoliczności i przyczyn:</b> {karta_wypadku.get('opis_okolicznosci_i_przyczyn', 'Brak danych')}",
+            styles['CustomNormal']))
+        story.append(Paragraph(
+            f"<b>Rodzaj odniesionych urazów:</b> {karta_wypadku.get('rodzaj_odniesionych_urazow', 'Brak danych')}",
+            styles['CustomNormal']))
+        story.append(Paragraph(
+            f"<b>Pierwsza pomoc udzielono:</b> {karta_wypadku.get('pierwsza_pomoc_udzielono', 'Brak danych')}",
+            styles['CustomNormal']))
+        story.append(Paragraph(f"<b>Placówka medyczna:</b> {karta_wypadku.get('placowka_medyczna', 'Brak danych')}",
+                               styles['CustomNormal']))
+        story.append(Paragraph(
+            f"<b>Rozpoznany uraz medyczny:</b> {karta_wypadku.get('rozpoznany_uraz_medyczny', 'Brak danych')}",
+            styles['CustomNormal']))
+        story.append(
+            Paragraph(f"<b>Analiza BHP:</b> {karta_wypadku.get('analiza_bhp', 'Brak danych')}", styles['CustomNormal']))
+    else:
+        story.append(Paragraph("Brak danych w Karcie Wypadku.", styles['CustomNormal']))
     story.append(Spacer(1, 12))
 
     if "decyzja" in accident_data:
-        story.append(Paragraph(f"<b>Decyzja ZUS:</b> {accident_data['decyzja']}", styles['Normal']))
+        story.append(Paragraph(f"<b>Decyzja ZUS:</b> {accident_data['decyzja']}", styles['CustomNormal']))
+    story.append(Spacer(1, 6))
+
     if "uzasadnienie" in accident_data:
-        story.append(Paragraph("<b>Uzasadnienie:</b>", styles['h2']))
-        story.append(Paragraph(accident_data['uzasadnienie'], styles['Normal']))
+        story.append(Paragraph("<b>Uzasadnienie:</b>", styles['CustomHeading2']))
+        story.append(Paragraph(accident_data['uzasadnienie'], styles['CustomNormal']))
+    story.append(Spacer(1, 6))
 
     if "niezgodnosci_lub_braki" in accident_data and accident_data['niezgodnosci_lub_braki'] != "Brak":
-        story.append(Paragraph("<b>Wykryte niezgodności / Braki:</b>", styles['h2']))
-
+        story.append(Paragraph("<b>Wykryte niezgodności / Braki w dokumentacji:</b>", styles['CustomHeading2']))
         niezgodnosci_data = accident_data['niezgodnosci_lub_braki']
         if isinstance(niezgodnosci_data, list):
-            niezgodnosci_text = ", ".join(niezgodnosci_data)
+            niezgodnosci_text = "<br/>".join(niezgodnosci_data)
         else:
             niezgodnosci_text = str(niezgodnosci_data)
-
-        story.append(Paragraph(niezgodnosci_text, styles['Normal']))
+        story.append(Paragraph(niezgodnosci_text, styles['CustomNormal']))
 
     doc.build(story)
     buffer.seek(0)
     return buffer.getvalue()
-
 
 def generate_explanation_pdf(chat_messages):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
 
+    styles.add(ParagraphStyle(name='ChatUser', parent=styles['Normal'], fontSize=10, leading=14, textColor='#333333'))
+    styles.add(ParagraphStyle(name='ChatBot', parent=styles['Normal'], fontSize=10, leading=14, textColor='#0055AA'))
+    styles.add(ParagraphStyle(name='CustomHeading1', parent=styles['h1'], fontSize=16, leading=18, spaceAfter=12))
+
     story = []
-    story.append(Paragraph("<b>Wyjaśnienia Poszkodowanego (Transcript rozmowy z botem)</b>", styles['h1']))
+    story.append(Paragraph("<b>Wyjaśnienia Poszkodowanego (Transcript rozmowy z botem)</b>", styles['CustomHeading1']))
     story.append(Spacer(1, 12))
     story.append(Paragraph(f"<b>Data rozmowy:</b> {datetime.date.today().strftime('%d-%m-%Y')}", styles['Normal']))
     story.append(Spacer(1, 12))
 
     for msg in chat_messages:
         role = "Obywatel" if msg["role"] == "user" else "ZUS Bot"
-        story.append(Paragraph(f"<b>{role}:</b> {msg['content']}", styles['Normal']))
+        style = styles['ChatUser'] if msg["role"] == "user" else styles['ChatBot']
+
+        content_text = msg['content']
+        if msg["role"] == "user" and "Jesteś wirtualnym asystentem ZUS" in content_text:
+            content_text = re.sub(r"Jesteś wirtualnym asystentem ZUS.*?(\n\n|$)", "", content_text,
+                                  flags=re.DOTALL | re.IGNORECASE)
+            content_text = content_text.strip()
+            if not content_text:
+                continue
+
+        story.append(Paragraph(f"<b>{role}:</b> {content_text}", style))
         story.append(Spacer(1, 6))
 
     doc.build(story)
@@ -84,6 +136,10 @@ if role == "Obywatel (Zgłoszenie)":
     if "conversation_finished" not in st.session_state:
         st.session_state.conversation_finished = False
 
+    if not st.session_state.messages:
+        initial_bot_message = "Witaj! Jestem wirtualnym asystentem ZUS i pomogę Ci zgłosić wypadek przy pracy. Pamiętaj, że wszystkie podane informacje powinny być zgodne z prawdą, ponieważ zostaną później porównane z dokumentacją. Aby rozpocząć, proszę opisz, co dokładnie się stało."
+        st.session_state.messages.append({"role": "assistant", "content": initial_bot_message})
+
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
@@ -101,7 +157,11 @@ if role == "Obywatel (Zgłoszenie)":
                 st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
 
-            if "podsumowując" in response.lower() or "czy to wszystko" in response.lower() or "dziękuję za informacje" in response.lower():
+            if any(phrase in response.lower() for phrase in [
+                "podsumowując", "dziękuję za informacje", "rozumiem wszystkie",
+                "czy to wszystko", "wszystkie potrzebne dane zostały zebrane",
+                "to koniec", "czy mogę w czymś jeszcze pomóc"
+            ]):
                 st.session_state.conversation_finished = True
                 user_messages_content = [msg["content"] for msg in st.session_state.messages if msg["role"] == "user"]
                 st.session_state.final_citizen_description = "\n".join(user_messages_content)
@@ -116,7 +176,7 @@ if role == "Obywatel (Zgłoszenie)":
         st.download_button(
             label="Pobierz Wyjaśnienia Poszkodowanego (PDF)",
             data=explanation_pdf,
-            file_name="wyjasnienia_poszkodowanego.pdf",
+            file_name=f"wyjasnienia_poszkodowanego_{datetime.date.today().strftime('%Y%m%d')}.pdf",
             mime="application/pdf"
         )
 
@@ -136,9 +196,10 @@ elif role == "Pracownik ZUS (Decyzja)":
     )
 
     st.markdown("### Wgraj dokumentację")
-    uploaded_medical_file = st.file_uploader("Wgraj dokumentację medyczną (PDF)", type=['pdf'], key="medical_pdf")
-    uploaded_workplace_file = st.file_uploader("Wgraj dokumentację miejsca pracy (PDF)", type=['pdf'],
-                                               key="workplace_pdf")
+    uploaded_medical_file = st.file_uploader("Wgraj dokumentację medyczną (zaświadczenie o stanie zdrowia) - PDF",
+                                             type=['pdf'], key="medical_pdf")
+    uploaded_workplace_file = st.file_uploader("Wgraj dokumentację miejsca pracy (zaświadczenie od pracodawcy) - PDF",
+                                               type=['pdf'], key="workplace_pdf")
 
     if st.button("Analizuj sprawę"):
         with st.spinner("Analiza orzecznictwa i dokumentacji..."):
@@ -194,6 +255,6 @@ elif role == "Pracownik ZUS (Decyzja)":
         st.download_button(
             label="Pobierz Zawiadomienie o Wypadku (PDF)",
             data=accident_notification_pdf,
-            file_name="zawiadomienie_o_wypadku.pdf",
+            file_name=f"zawiadomienie_o_wypadku_{datetime.date.today().strftime('%Y%m%d')}.pdf",
             mime="application/pdf"
         )
