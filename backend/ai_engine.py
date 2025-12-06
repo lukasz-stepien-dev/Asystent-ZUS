@@ -1,26 +1,24 @@
 import json
 import os
-
 import chromadb
-from openai import OpenAI
+import google.generativeai as genai
 from dotenv import load_dotenv
 from chromadb.utils import embedding_functions
+from backend.prompts import CITIZEN_SYSTEM_PROMPT, get_officer_system_prompt
 
 load_dotenv()
-api_key = os.getenv("GROQ_API_KEY")
 
-if not api_key:
-    raise ValueError("Brak klucza API! Dodaj GROQ_API_KEY do pliku .env")
+gemini_api_key = os.getenv("GEMINI_API_KEY")
 
-client = OpenAI(
-    api_key=api_key,
-    base_url="https://api.groq.com/openai/v1"
-)
+if not gemini_api_key:
+    raise ValueError("Brak klucza API dla Gemini! Dodaj GEMINI_API_KEY do pliku .env")
 
-MODEL_NAME = "llama-3.3-70b-versatile"
+genai.configure(api_key=gemini_api_key)
+
+MODEL_NAME = "gemini-2.5-flash"
+
 CHROMA_PATH = "./chroma_db"
 COLLECTION_NAME = "zus_cases"
-
 ef = embedding_functions.DefaultEmbeddingFunction()
 
 try:
@@ -39,92 +37,87 @@ except Exception as e:
 def find_similar_cases(user_description, n_results=3):
     if not HAS_DB_CONNECTION:
         return "Brak dostępu do bazy historycznej (nie zaindeksowano spraw)."
-
     try:
         results = collection.query(
             query_texts=[user_description],
             n_results=n_results
         )
-
         context_text = ""
         if results['documents']:
-            for i, doc in enumerate(results['documents'][0]):
+            for i, doc in enumerate(
+                    results['documents'][0]):
                 case_id = results['ids'][0][i]
                 context_text += f"\n--- PODOBNA SPRAWA HISTORYCZNA NR {i + 1} (ID: {case_id}) ---\n"
                 context_text += f"DECYZJA I UZASADNIENIE EKSPERTA ZUS:\n{doc}\n"
-
         return context_text
-
     except Exception as e:
         print(f"Błąd podczas szukania w ChromaDB: {e}")
         return "Błąd podczas przeszukiwania archiwum spraw."
 
 
 def get_citizen_chat_response(messages_history):
-    system_prompt = """
-    Jesteś wirtualnym urzędnikiem ZUS. Pomagasz zgłosić wypadek.
-    Mów krótko, prosto i po polsku.
-    Zbierz informacje: Data, Miejsce, Przebieg zdarzenia, Uraz.
-    """
+    system_prompt = CITIZEN_SYSTEM_PROMPT
+    gemini_messages = []
 
-    full_messages = [{"role": "system", "content": system_prompt}] + messages_history
+    for i, msg in enumerate(messages_history):
+        if i == 0 and msg["role"] == "user":
+            gemini_messages.append({"role": "user", "parts": [system_prompt + "\n\n" + msg["content"]]})
+        else:
+            gemini_messages.append({
+                "role": "user" if msg["role"] == "user" else "model",
+                "parts": [msg["content"]]
+            })
 
     try:
-        response = client.chat.completions.create(
-            model=MODEL_NAME,  # Używamy Llamy 3
-            messages=full_messages,
-            temperature=0.7
-        )
-        return response.choices[0].message.content
+        model = genai.GenerativeModel(MODEL_NAME)
+        response = model.generate_content(gemini_messages)
+        return response.text
     except Exception as e:
-        return f"Błąd Groq API: {str(e)}"
+        print(f"Błąd Gemini API w get_citizen_chat_response: {str(e)}")
+        return f"Błąd Gemini API: {str(e)}"
 
 
-def analyze_case_for_officer(citizen_description, pdf_text=""):
+def analyze_case_for_officer(citizen_description, medical_pdf_text="", workplace_pdf_text=""):
     similar_cases_context = find_similar_cases(citizen_description)
 
-    system_prompt = f"""
-    Jesteś Starszym Orzecznikiem ZUS.
-
-    ZASADY PRAWNE:
-    Wypadek przy pracy = Nagłość + Przyczyna Zewnętrzna + Związek z Pracą + Uraz.
-
-    PODOBNE SPRAWY Z ARCHIWUM (Wzoruj się na nich!):
-    {similar_cases_context}
-
-    ZADANIE:
-    Przeanalizuj opis i dokumentację. Wydaj decyzję w formacie JSON.
-    Zwróć TYLKO czysty JSON.
-    """
+    system_prompt = get_officer_system_prompt(similar_cases_context)
 
     user_message = f"""
-    Opis zgłoszenia: {citizen_description}
-    Dokumentacja (PDF): {pdf_text}
-    """
+    Opis zgłoszenia od obywatela: {citizen_description}
 
+    Dokumentacja medyczna (PDF):
+    {medical_pdf_text if medical_pdf_text else "Brak dokumentacji medycznej."}
+
+    Dokumentacja miejsca pracy (PDF):
+    {workplace_pdf_text if workplace_pdf_text else "Brak dokumentacji miejsca pracy."}
+
+    Na podstawie powyższych danych, dokonaj analizy i zwróć decyzję w formacie JSON.
+    """
     try:
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ],
-            temperature=0.0,
-            response_format={"type": "json_object"}
+        model = genai.GenerativeModel(MODEL_NAME)
+        response = model.generate_content(
+            [{"role": "user", "parts": [system_prompt + "\n" + user_message]}],
+            generation_config=genai.types.GenerationConfig(temperature=0.0)
         )
 
-        content = response.choices[0].message.content
-        return json.loads(content)
+        content = response.text
+        if content.startswith("```json") and content.endswith("```"):
+            content = content[7:-3].strip()
 
+        return json.loads(content)
     except json.JSONDecodeError:
+        print(f"Błąd parsowania JSON: {content}")
         return {
             "decyzja": "BŁĄD PARSOWANIA",
-            "uzasadnienie": "Model zwrócił odpowiedź, która nie jest poprawnym JSONem.",
+            "uzasadnienie": "Model zwrócił odpowiedź, która nie jest poprawnym JSONem. Sprawdź logi.",
+            "niezgodnosci_lub_braki": "Brak",
             "karta_wypadku": {}
         }
     except Exception as e:
+        print(f"Błąd Gemini API w analyze_case_for_officer: {str(e)}")
         return {
             "decyzja": "BŁĄD API",
-            "uzasadnienie": f"Wystąpił błąd połączenia z Groq: {str(e)}",
+            "uzasadnienie": f"Wystąpił błąd połączenia z Gemini: {str(e)}",
+            "niezgodnosci_lub_braki": "Brak",
             "karta_wypadku": {}
         }
