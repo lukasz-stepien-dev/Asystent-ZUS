@@ -23,6 +23,7 @@ Aby zgłoszenie było kompletne, potrzebuję następujących danych. Będę zada
 5.  **Pierwsza pomoc i opieka medyczna:** Czy udzielono Ci pierwszej pomocy? Gdzie i kiedy szukałeś/aś pomocy medycznej? (nazwa placówki, data)
 6.  **Praca w dniu wypadku:** Jaka była planowana godzina rozpoczęcia i zakończenia pracy w dniu wypadku? Jaki był rodzaj wykonywanych czynności do momentu wypadku?
 
+Po uzyskaniu wyczerpującej i poprawnej odpowidzi przejdź do uzyskiwania kolejnych.
 Zadawaj po jednym pytaniu naraz, używaj prostego języka. Po zebraniu wszystkich danych, podsumuj zgłoszenie.
 """
 
