@@ -1,45 +1,66 @@
 import streamlit as st
-import random
-import time
+from backend.ai_engine import get_citizen_chat_response, analyze_case_for_officer
+from backend.pdf_engine import extract_text_from_pdf
 
-st.write("Streamlit loves LLMs! 🤖 [Build your own chat app](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps) in minutes, then make it powerful by adding images, dataframes, or even input widgets to the chat.")
+st.set_page_config(page_title="ZANT - System ZUS", layout="wide")
+st.title("ZANT - System Wypadkowy ZUS")
 
-st.caption("Note that this demo app isn't actually connected to any LLMs. Those are expensive ;)")
+role = st.sidebar.radio("Wybierz moduł:", ["Obywatel (Zgłoszenie)", "Pracownik ZUS (Decyzja)"])
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Let's start chatting! 👇"}]
+if role == "Obywatel (Zgłoszenie)":
+    st.header("Zgłoś wypadek przy pracy")
 
-# Display chat messages from history on app rerun
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-# Accept user input
-if prompt := st.chat_input("What is up?"):
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    # Display user message in chat message container
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-    # Display assistant response in chat message container
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
-        assistant_response = random.choice(
-            [
-                "Hello there! How can I assist you today?",
-                "Hi, human! Is there anything I can help you with?",
-                "Do you need help?",
-            ]
-        )
-        # Simulate stream of response with milliseconds delay
-        for chunk in assistant_response.split():
-            full_response += chunk + " "
-            time.sleep(0.05)
-            # Add a blinking cursor to simulate typing
-            message_placeholder.markdown(full_response + "▌")
-        message_placeholder.markdown(full_response)
-    # Add assistant response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+    if prompt := st.chat_input("Opisz zdarzenie..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        response = get_citizen_chat_response(st.session_state.messages)
+
+        with st.chat_message("assistant"):
+            st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+elif role == "Pracownik ZUS (Decyzja)":
+    st.header("Panel Orzecznika - Wsparcie Decyzji")
+
+    uploaded_file = st.file_uploader("Wgraj dokumentację (PDF)", type=['pdf'])
+
+    citizen_desc = st.text_area("Opis zgłoszenia (wpisz ręcznie lub wklej z czatu)")
+
+    if st.button("Analizuj sprawę"):
+        with st.spinner("Analiza orzecznictwa i dokumentacji..."):
+
+            pdf_text = ""
+            if uploaded_file:
+                pdf_text = extract_text_from_pdf(uploaded_file)
+            else:
+                st.warning("Nie wgrano pliku PDF – analiza oparta tylko o opis.")
+
+            wynik = analyze_case_for_officer(citizen_desc, pdf_text)
+
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader("Rekomendacja")
+                decyzja = wynik.get("decyzja", "BRAK DANYCH")
+
+                if "UZNAĆ" in decyzja.upper():
+                    st.success(f"✅ {decyzja}")
+                elif "ODMÓWIĆ" in decyzja.upper():
+                    st.error(f"❌ {decyzja}")
+                else:
+                    st.warning(f"⚠️ {decyzja}")
+
+            with col2:
+                st.subheader("Uzasadnienie Prawne")
+                st.write(wynik.get("uzasadnienie", "Brak uzasadnienia"))
+
+            st.subheader("Projekt Karty Wypadku")
+            st.json(wynik.get("karta_wypadku", {}))
