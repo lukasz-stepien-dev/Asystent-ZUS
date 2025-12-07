@@ -15,7 +15,7 @@ if not gemini_api_key:
 
 genai.configure(api_key=gemini_api_key)
 
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-robotics-er-1.5-preview"
 
 CHROMA_PATH = "./chroma_db"
 COLLECTION_NAME = "zus_cases"
