@@ -5,6 +5,25 @@ from backend.prompts import CITIZEN_SYSTEM_PROMPT, BUSINESS_SYSTEM_PROMPT
 import datetime
 
 def citizen_module():
+    st.markdown("""
+        <style>
+        p, .stMarkdown p, .stText, .stChatMessage {
+            font-size: 20px !important;
+        }
+                
+        div[data-testid="column"] .stButton button, div[data-testid="stColumn"] .stButton button {
+            height: 150px !important;
+            min-height: 150px !important;
+            max-height: 150px !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
     st.header("Zgłoś wypadek przy pracy")
 
     if "messages" not in st.session_state:
@@ -27,14 +46,14 @@ def citizen_module():
         col1, col2, _ = st.columns([1, 1, 3])
         
         with col1:
-            if st.button("Zawiadomienie o wypadku"):
+            if st.button("Zawiadomienie o wypadku", use_container_width=True):
                 st.session_state.selected_path = "business"
                 initial_bot_message = "Dzień dobry. Przyjmuję zgłoszenie wypadku osoby prowadzącej działalność. Pamiętaj, że wszystkie podane informacje powinny być zgodne z prawdą. Proszę opisz, co się stało."
                 st.session_state.messages.append({"role": "assistant", "content": initial_bot_message})
                 st.rerun()
                 
         with col2:
-            if st.button("Zapis wyjaśnień poszkodowanego"):
+            if st.button("Zapis wyjaśnień poszkodowanego", use_container_width=True):
                 st.session_state.selected_path = "citizen"
                 initial_bot_message = "Dzień dobry. Słucham Twoich wyjaśnień dotyczących wypadku. Pamiętaj, że wszystkie podane informacje powinny być zgodne z prawdą. Proszę opisz dokładnie przebieg zdarzenia."
                 st.session_state.messages.append({"role": "assistant", "content": initial_bot_message})
