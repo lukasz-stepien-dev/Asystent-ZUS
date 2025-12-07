@@ -5,25 +5,6 @@ from backend.prompts import CITIZEN_SYSTEM_PROMPT, BUSINESS_SYSTEM_PROMPT
 import datetime
 
 def citizen_module():
-    st.markdown("""
-        <style>
-        p, .stMarkdown p, .stText, .stChatMessage {
-            font-size: 20px !important;
-        }
-                
-        div[data-testid="column"] .stButton button, div[data-testid="stColumn"] .stButton button {
-            height: 150px !important;
-            min-height: 150px !important;
-            max-height: 150px !important;
-            white-space: normal !important;
-            word-wrap: break-word !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            text-align: center !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
     st.header("Zgłoś wypadek przy pracy")
 
     if "messages" not in st.session_state:

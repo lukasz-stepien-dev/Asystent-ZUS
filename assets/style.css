@@ -1,0 +1,65 @@
+/* Sidebar styles */
+[data-testid="stSidebar"] {
+    background-color: #009c44;
+}
+[data-testid="stSidebar"] * {
+    color: #ffffff !important;
+    font-weight: bold !important;
+}
+[data-testid="stSidebar"] .stButton button {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    color: #ffffff !important;
+    border: 2px solid #ffffff;
+    background-color: #007a33;
+    font-weight: bold;
+    font-size: 36px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+[data-testid="stSidebar"] .stButton button p {
+    font-size: 36px !important;
+}
+[data-testid="stSidebar"] .stButton button:hover {
+    background-color: #004d22;
+    color: #ffffff !important;
+    border-color: #ffffff;
+}
+[data-testid="stSidebar"] h1 {
+    font-size: 40px !important;
+    text-align: center;
+}
+
+/* Global button styles */
+.stButton button {
+    background-color: #009c44;
+    color: #ffffff !important;
+    border: none;
+}
+.stButton button:hover {
+    background-color: #007a33;
+    color: #ffffff !important;
+}
+
+/* Citizen module text size */
+p, .stMarkdown p, .stText, .stChatMessage {
+    font-size: 20px !important;
+}
+
+/* Citizen module column buttons */
+div[data-testid="column"] .stButton button, div[data-testid="stColumn"] .stButton button {
+    height: 150px !important;
+    min-height: 150px !important;
+    max-height: 150px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
