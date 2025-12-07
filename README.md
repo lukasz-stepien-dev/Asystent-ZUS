@@ -30,8 +30,7 @@ Prosta aplikacja typu chatbot zbudowana przy użyciu frameworka Streamlit. Proje
     W przeciwnym wypadku zainstaluj Streamlit ręcznie:
     ```bash
     pip install streamlit
-    ```
-    Kiedy prosi o email wystarczy wcisnąć Enter 
+    ``` 
 
 ## Uruchomienie
 
@@ -39,3 +38,5 @@ Aby uruchomić aplikację, wykonaj w terminalu poniższe polecenie (upewniając 
 
 ```bash
 streamlit run main.py
+```
+Kiedy prosi o email wystarczy wcisnąć Enter
