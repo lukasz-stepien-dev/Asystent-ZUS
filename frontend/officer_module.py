@@ -1,6 +1,6 @@
 import streamlit as st
 from backend.ai_engine import analyze_case_for_officer
-from backend.pdf_engine import extract_text_from_pdf, generate_accident_notification_pdf
+from backend.pdf_engine import extract_text_from_pdf, generate_accident_notification_pdf, convert_pdf_to_images
 import datetime
 
 def officer_module():
@@ -21,10 +21,18 @@ def officer_module():
                                       type=['pdf'], accept_multiple_files=True, key="officer_docs")
 
     if st.button("Analizuj sprawę"):
-        with st.spinner("Analiza orzecznictwa i dokumentacji..."):
+        with st.spinner("Analiza orzecznictwa i dokumentacji (Vision)..."):
             documentation_text = ""
+            documentation_images = []
             if uploaded_files:
                 for uploaded_file in uploaded_files:
+                    # Vision analysis
+                    uploaded_file.seek(0)
+                    images = convert_pdf_to_images(uploaded_file)
+                    documentation_images.extend(images)
+                    
+                    # Text extraction
+                    uploaded_file.seek(0)
                     text = extract_text_from_pdf(uploaded_file)
                     documentation_text += f"\n--- DOKUMENT: {uploaded_file.name} ---\n{text}\n"
             else:
@@ -33,7 +41,7 @@ def officer_module():
             if not citizen_desc_input:
                 st.error("Proszę wprowadzić opis zgłoszenia od obywatela.")
             else:
-                wynik = analyze_case_for_officer(citizen_desc_input, documentation_text)
+                wynik = analyze_case_for_officer(citizen_desc_input, documentation_images, documentation_text)
                 st.session_state.zus_analysis_result = wynik 
 
                 col1, col2 = st.columns(2)

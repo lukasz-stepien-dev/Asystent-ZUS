@@ -1,4 +1,5 @@
 import PyPDF2
+from pdf2image import convert_from_bytes
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -17,6 +18,16 @@ def extract_text_from_pdf(uploaded_file):
         return text
     except Exception as e:
         return f"Błąd odczytu PDF: {str(e)}"
+
+def convert_pdf_to_images(uploaded_file):
+    try:
+        file_bytes = uploaded_file.read()
+        uploaded_file.seek(0)
+        images = convert_from_bytes(file_bytes)
+        return images
+    except Exception as e:
+        return []
+
 
 def generate_accident_notification_pdf(accident_data):
     buffer = BytesIO()

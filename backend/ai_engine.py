@@ -15,7 +15,7 @@ if not gemini_api_key:
 
 genai.configure(api_key=gemini_api_key)
 
-MODEL_NAME = "gemini-robotics-er-1.5-preview"
+MODEL_NAME = "gemini-flash-lite-latest"
 
 CHROMA_PATH = "./chroma_db"
 COLLECTION_NAME = "zus_cases"
@@ -78,7 +78,7 @@ def get_citizen_chat_response(messages_history, system_prompt=CITIZEN_SYSTEM_PRO
         return f"Błąd Gemini API: {str(e)}"
 
 
-def analyze_case_for_officer(citizen_description, documentation_text=""):
+def analyze_case_for_officer(citizen_description, documentation_images=None, documentation_text=""):
     similar_cases_context = find_similar_cases(citizen_description)
 
     system_prompt = get_officer_system_prompt(similar_cases_context)
@@ -87,20 +87,28 @@ def analyze_case_for_officer(citizen_description, documentation_text=""):
     Opis zgłoszenia od obywatela: {citizen_description}
 
     Załączona dokumentacja (PDF):
-    {documentation_text if documentation_text else "Brak załączonej dokumentacji."}
+    {documentation_text if documentation_text else "Brak tekstu dokumentacji - analiza wizualna."}
 
-    Na podstawie powyższych danych, dokonaj analizy i zwróć decyzję w formacie JSON.
+    Na podstawie powyższych danych (tekst i/lub obrazy), dokonaj analizy i zwróć decyzję w formacie JSON.
     """
     try:
         model = genai.GenerativeModel(MODEL_NAME)
+        
+        parts = [system_prompt + "\n" + user_message]
+        if documentation_images:
+            parts.extend(documentation_images)
+
         response = model.generate_content(
-            [{"role": "user", "parts": [system_prompt + "\n" + user_message]}],
+            parts,
             generation_config=genai.types.GenerationConfig(temperature=0.0)
         )
 
         content = response.text
-        if content.startswith("```json") and content.endswith("```"):
-            content = content[7:-3].strip()
+        if content.startswith("```json"):
+            content = content[7:]
+        if content.endswith("```"):
+            content = content[:-3]
+        content = content.strip()
 
         return json.loads(content)
     except json.JSONDecodeError:
