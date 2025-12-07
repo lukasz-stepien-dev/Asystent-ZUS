@@ -3,9 +3,23 @@ from pdf2image import convert_from_bytes
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from io import BytesIO
 import datetime
 import re
+import os
+
+try:
+    pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+    pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))
+    pdfmetrics.registerFontFamily('DejaVuSans', normal='DejaVuSans', bold='DejaVuSans-Bold')
+    FONT_NORMAL = 'DejaVuSans'
+    FONT_BOLD = 'DejaVuSans-Bold'
+except Exception as e:
+    print(f"Warning: Could not load DejaVuSans fonts: {e}")
+    FONT_NORMAL = 'Helvetica'
+    FONT_BOLD = 'Helvetica-Bold'
 
 def extract_text_from_pdf(uploaded_file):
     try:
@@ -32,11 +46,12 @@ def convert_pdf_to_images(uploaded_file):
 def generate_accident_notification_pdf(accident_data):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
+
     styles = getSampleStyleSheet()
 
-    styles.add(ParagraphStyle(name='CustomNormal', parent=styles['Normal'], fontSize=10, leading=14))
-    styles.add(ParagraphStyle(name='CustomHeading1', parent=styles['h1'], fontSize=16, leading=18, spaceAfter=12))
-    styles.add(ParagraphStyle(name='CustomHeading2', parent=styles['h2'], fontSize=12, leading=14, spaceBefore=10,
+    styles.add(ParagraphStyle(name='CustomNormal', parent=styles['Normal'], fontName=FONT_NORMAL, fontSize=10, leading=14))
+    styles.add(ParagraphStyle(name='CustomHeading1', parent=styles['h1'], fontName=FONT_BOLD, fontSize=16, leading=18, spaceAfter=12))
+    styles.add(ParagraphStyle(name='CustomHeading2', parent=styles['h2'], fontName=FONT_BOLD, fontSize=12, leading=14, spaceBefore=10,
                               spaceAfter=6))
 
     story = []
@@ -111,10 +126,11 @@ def generate_explanation_pdf(chat_messages):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
+    styles['Normal'].fontName = FONT_NORMAL
 
-    styles.add(ParagraphStyle(name='ChatUser', parent=styles['Normal'], fontSize=10, leading=14, textColor='#333333'))
-    styles.add(ParagraphStyle(name='ChatBot', parent=styles['Normal'], fontSize=10, leading=14, textColor='#0055AA'))
-    styles.add(ParagraphStyle(name='CustomHeading1', parent=styles['h1'], fontSize=16, leading=18, spaceAfter=12))
+    styles.add(ParagraphStyle(name='ChatUser', parent=styles['Normal'], fontName=FONT_NORMAL, fontSize=10, leading=14, textColor='#333333'))
+    styles.add(ParagraphStyle(name='ChatBot', parent=styles['Normal'], fontName=FONT_NORMAL, fontSize=10, leading=14, textColor='#0055AA'))
+    styles.add(ParagraphStyle(name='CustomHeading1', parent=styles['h1'], fontName=FONT_BOLD, fontSize=16, leading=18, spaceAfter=12))
 
     story = []
     story.append(Paragraph("<b>Wyjaśnienia Poszkodowanego (Transcript rozmowy z botem)</b>", styles['CustomHeading1']))
