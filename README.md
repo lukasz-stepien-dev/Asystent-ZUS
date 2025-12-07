@@ -31,6 +31,7 @@ Prosta aplikacja typu chatbot zbudowana przy użyciu frameworka Streamlit. Proje
     ```bash
     pip install streamlit
     ```
+    Kiedy prosi o email wystarczy wcisnąć Enter 
 
 ## Uruchomienie
 
