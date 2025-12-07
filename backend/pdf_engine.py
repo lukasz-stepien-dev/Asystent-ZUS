@@ -129,3 +129,27 @@ def generate_explanation_pdf(chat_messages):
     doc.build(story)
     buffer.seek(0)
     return buffer.getvalue()
+
+
+def fill_accident_notification_pdf(data):
+    input_pdf_path = "static/zawiadomienie_o_wypadku.pdf"
+    output_buffer = BytesIO()
+    
+    try:
+        reader = PyPDF2.PdfReader(input_pdf_path)
+        writer = PyPDF2.PdfWriter()
+        
+        # Copy all pages
+        for page in reader.pages:
+            writer.add_page(page)
+            
+        # Update form fields
+        for page in writer.pages:
+            writer.update_page_form_field_values(page, data)
+            
+        writer.write(output_buffer)
+        output_buffer.seek(0)
+        return output_buffer.getvalue()
+    except Exception as e:
+        print(f"Błąd wypełniania PDF: {e}")
+        return None

@@ -54,6 +54,7 @@ Musisz zebrać następujące dane (jeśli zgłaszający nie poda wszystkich dany
    - Adres zamieszkania,
    - Adres ostatniego miejsca w Polsce (jeśli mieszka za granicą),
    - Adres do korespondencji.
+   - **Jeśli zgłaszającym jest pełnomocnik, poinformuj o konieczności złożenia pełnomocnictwa, jeżeli wcześniej nie zostało dostarczone.**
 
 7. **Informacje o wypadku:**
    - Data i godzina wypadku,
@@ -70,6 +71,7 @@ Musisz zebrać następujące dane (jeśli zgłaszający nie poda wszystkich dany
    - Adres (ulica, nr domu, nr lokalu, kod, miejscowość, państwo).
 
 Po zebraniu kompletnego zestawu informacji przygotuj jasne podsumowanie zgłoszenia i potwierdź, że wszystko zostało poprawnie zapisane.
+Poinformuj użytkownika, że na dole ekranu pojawi się przycisk do pobrania wypełnionego formularza "Zawiadomienie o wypadku".
 """
 
 BUSINESS_SYSTEM_PROMPT = """
@@ -112,10 +114,11 @@ Twoim celem jest zebranie informacji zgodnie z poniższymi kryteriami (pytaj o t
    - Kopia karty informacyjnej ze szpitala lub innych dokumentów, które dotyczą udzielonej pierwszej pomocy medycznej.
    - Notatka służbowa organów policji drogowej – w przypadku wypadku komunikacyjnego.
    - Kopia postanowienia prokuratury o wszczęciu postępowania karnego lub zawieszeniu/umorzeniu postępowania.
-   - Dokumenty potwierdzające prawo do wydania karty wypadku (m.in. pełnomocnictwo, a w przypadku wypadku śmiertelnego skrócony odpis aktu urodzenia, skrócony odpis aktu małżeństwa).
+   - Dokumenty potwierdzające prawo do wydania karty wypadku (m.in. pełnomocnictwo – jeśli sprawę zgłasza pełnomocnik, należy je dostarczyć, o ile nie zrobiono tego wcześniej; w przypadku wypadku śmiertelnego skrócony odpis aktu urodzenia, skrócony odpis aktu małżeństwa).
    - W sytuacji wypadku ze skutkiem śmiertelnym niezbędna jest statystyczna karta zgonu lub zaświadczenie lekarskie stwierdzające przyczynę zgonu.
 
 Po zebraniu wszystkich odpowiedzi sporządź pełny, spójny zapis wyjaśnień poszkodowanego.
+Poinformuj użytkownika, że na dole ekranu pojawi się przycisk do pobrania wypełnionego formularza "Zawiadomienie o wypadku".
 """
 
 def get_officer_system_prompt(similar_cases_context):

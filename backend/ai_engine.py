@@ -119,3 +119,90 @@ def analyze_case_for_officer(citizen_description, documentation_text=""):
             "niezgodnosci_lub_braki": "Brak",
             "karta_wypadku": {}
         }
+
+
+def extract_accident_data_for_pdf(messages_history):
+    """
+    Analizuje historię rozmowy i wyciąga dane do wypełnienia formularza Zawiadomienie o wypadku.
+    Zwraca słownik, gdzie klucze to nazwy pól w PDF.
+    """
+    conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages_history])
+    
+    prompt = f"""
+    Przeanalizuj poniższą rozmowę z obywatelem zgłaszającym wypadek i wyciągnij dane potrzebne do wypełnienia formularza "Zawiadomienie o wypadku".
+    
+    Rozmowa:
+    {conversation_text}
+    
+    Twoim zadaniem jest przygotowanie obiektu JSON, w którym klucze odpowiadają polom formularza PDF.
+    Oto lista pól, które powinieneś spróbować wypełnić na podstawie rozmowy (jeśli brak danych, zostaw puste lub wpisz "Nie podano").
+    
+    DANE OSOBY POSZKODOWANEJ:
+    - PESEL[0] (PESEL)
+    - Rodzajseriainumerdokumentu[0] (Rodzaj, seria i numer dokumentu tożsamości)
+    - Imię[0] (Imię)
+    - Nazwisko[0] (Nazwisko)
+    - Dataurodzenia[0] (Data urodzenia DD/MM/RRRR)
+    - Miejsceurodzenia[0] (Miejsce urodzenia)
+    - Numertelefonu[0] (Numer telefonu)
+    
+    ADRES ZAMIESZKANIA POSZKODOWANEGO:
+    - Ulica[0] (Ulica)
+    - Numerdomu[0] (Numer domu)
+    - Numerlokalu[0] (Numer lokalu)
+    - Kodpocztowy[0] (Kod pocztowy)
+    - Poczta[0] (Miejscowość)
+    - Nazwapaństwa[0] (Nazwa państwa, jeśli inne niż Polska)
+    
+    ADRES DO KORESPONDENCJI (jeśli inny):
+    - Ulica2[0] (Ulica)
+    - Numerdomu2[0] (Numer domu)
+    - Numerlokalu2[0] (Numer lokalu)
+    - Kodpocztowy2[0] (Kod pocztowy)
+    - Poczta2[0] (Miejscowość)
+    - Numertelefonu2[0] (Numer telefonu)
+    
+    DANE OSOBY ZAWIADAMIAJĄCEJ (jeśli inna niż poszkodowany):
+    - Imię[1] (Imię)
+    - Nazwisko[1] (Nazwisko)
+    - Ulica[1] (Ulica)
+    - Numerdomu[1] (Numer domu)
+    - Numerlokalu[1] (Numer lokalu)
+    - Kodpocztowy[1] (Kod pocztowy)
+    - Poczta[1] (Miejscowość)
+    
+    INFORMACJA O WYPADKU:
+    - Datawyp[0] (Data wypadku DD/MM/RRRR)
+    - Godzina[0] (Godzina wypadku)
+    - Miejscewyp[0] (Miejsce wypadku)
+    - Godzina3A[0] (Planowana godzina rozpoczęcia pracy)
+    - Godzina3B[0] (Planowana godzina zakończenia pracy)
+    - Tekst4[0] (Rodzaj doznanych urazów)
+    - Tekst5[0] (Szczegółowy opis okoliczności, miejsca i przyczyn wypadku)
+    - TAK6[0] / NIE6[0] (Czy udzielono pierwszej pomocy? Wpisz "Yes" w odpowiednie pole, drugie zostaw puste)
+    - Tekst6[0] (Jeśli TAK, nazwa i adres placówki medycznej)
+    - Tekst7[0] (Organ prowadzący postępowanie np. Policja)
+    - TAK8[0] / NIE8[0] (Czy wypadek przy obsłudze maszyn? Wpisz "Yes" w odpowiednie pole)
+    - Tekst8[0] (Jeśli TAK, czy maszyna była sprawna)
+    - TAK9[0] / NIE9[0] (Czy maszyna ma atest? Wpisz "Yes" w odpowiednie pole)
+    - TAK10[0] / NIE10[0] (Czy maszyna w ewidencji? Wpisz "Yes" w odpowiednie pole)
+    
+    Zwróć TYLKO poprawny obiekt JSON. Nie dodawaj żadnych komentarzy ani formatowania markdown (```json).
+    """
+    
+    try:
+        model = genai.GenerativeModel(MODEL_NAME)
+        response = model.generate_content(prompt)
+        content = response.text.strip()
+        
+        # Clean up markdown if present
+        if content.startswith("```json"):
+            content = content[7:]
+        if content.endswith("```"):
+            content = content[:-3]
+        content = content.strip()
+            
+        return json.loads(content)
+    except Exception as e:
+        print(f"Błąd ekstrakcji danych do PDF: {e}")
+        return {}

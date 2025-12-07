@@ -1,6 +1,6 @@
 import streamlit as st
-from backend.ai_engine import get_citizen_chat_response
-from backend.pdf_engine import generate_explanation_pdf
+from backend.ai_engine import get_citizen_chat_response, extract_accident_data_for_pdf
+from backend.pdf_engine import generate_explanation_pdf, fill_accident_notification_pdf
 from backend.prompts import CITIZEN_SYSTEM_PROMPT, BUSINESS_SYSTEM_PROMPT
 import datetime
 
@@ -17,6 +17,8 @@ def citizen_module():
         st.session_state.selected_path = None
     if "processing" not in st.session_state:
         st.session_state.processing = False
+    if "accident_notification_pdf" not in st.session_state:
+        st.session_state.accident_notification_pdf = None
 
     if st.session_state.selected_path is None:
         st.write("Witaj! Jestem wirtualnym asystentem ZUS.")
@@ -88,5 +90,15 @@ def citizen_module():
             mime="application/pdf"
         )
 
-        st.markdown(
-            "<i>Zawiadomienie o wypadku będzie dostępne do pobrania w module 'Pracownik ZUS (Decyzja)' po analizie sprawy.</i>")
+        if st.session_state.accident_notification_pdf is None:
+             with st.spinner("Generowanie Zawiadomienia o wypadku..."):
+                accident_data = extract_accident_data_for_pdf(st.session_state.messages)
+                st.session_state.accident_notification_pdf = fill_accident_notification_pdf(accident_data)
+        
+        if st.session_state.accident_notification_pdf:
+            st.download_button(
+                label="Pobierz Zawiadomienie o Wypadku (PDF)",
+                data=st.session_state.accident_notification_pdf,
+                file_name=f"zawiadomienie_o_wypadku_{datetime.date.today().strftime('%Y%m%d')}.pdf",
+                mime="application/pdf"
+            )
