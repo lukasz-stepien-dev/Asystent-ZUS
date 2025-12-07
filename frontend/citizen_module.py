@@ -7,6 +7,14 @@ import datetime
 def citizen_module():
     st.header("Zgłoś wypadek przy pracy")
 
+    def reset_conversation():
+        st.session_state.messages = []
+        st.session_state.final_citizen_description = ""
+        st.session_state.conversation_finished = False
+        st.session_state.selected_path = None
+        st.session_state.processing = False
+        st.session_state.accident_notification_pdf = None
+
     if "messages" not in st.session_state:
         st.session_state.messages = []
     if "final_citizen_description" not in st.session_state:
@@ -44,6 +52,10 @@ def citizen_module():
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+
+    if st.session_state.selected_path is not None and not st.session_state.conversation_finished:
+        if st.button("← Wróć do wyboru zgłoszenia", on_click=reset_conversation):
+            pass
 
     if not st.session_state.conversation_finished:
         def disable_chat():
