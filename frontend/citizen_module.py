@@ -15,6 +15,8 @@ def citizen_module():
         st.session_state.conversation_finished = False
     if "selected_path" not in st.session_state:
         st.session_state.selected_path = None
+    if "processing" not in st.session_state:
+        st.session_state.processing = False
 
     if st.session_state.selected_path is None:
         st.write("Witaj! Jestem wirtualnym asystentem ZUS.")
@@ -42,8 +44,13 @@ def citizen_module():
             st.markdown(message["content"])
 
     if not st.session_state.conversation_finished:
-        prompt = st.chat_input("Opisz zdarzenie...")
-        if prompt:
+        def disable_chat():
+            st.session_state.processing = True
+
+        prompt = st.chat_input("Opisz zdarzenie...", key="user_input", on_submit=disable_chat, disabled=st.session_state.processing)
+
+        if st.session_state.processing and st.session_state.get("user_input"):
+            prompt = st.session_state.user_input
             st.session_state.messages.append({"role": "user", "content": prompt})
             with st.chat_message("user"):
                 st.markdown(prompt)
@@ -64,6 +71,9 @@ def citizen_module():
                 user_messages_content = [msg["content"] for msg in st.session_state.messages if msg["role"] == "user"]
                 st.session_state.final_citizen_description = "\n".join(user_messages_content)
                 st.success("Rozmowa zakończona. Możesz teraz pobrać dokumenty.")
+
+            st.session_state.processing = False
+            st.rerun()
     else:
         st.info("Rozmowa została zakończona. Możesz przejść do panelu pracownika ZUS, aby kontynuować.")
 
