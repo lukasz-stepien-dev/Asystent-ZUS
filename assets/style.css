@@ -30,6 +30,15 @@
     color: #ffffff !important;
     border-color: #ffffff;
 }
+
+[data-testid="stSidebar"] .stButton button[kind="primary"] {
+    background-color: #004d22 !important;
+    border-color: #ffffff !important;
+}
+[data-testid="stSidebar"] .stButton button[kind="primary"]:hover {
+    background-color: #003311 !important;
+}
+
 [data-testid="stSidebar"] h1 {
     font-size: 40px !important;
     text-align: center;

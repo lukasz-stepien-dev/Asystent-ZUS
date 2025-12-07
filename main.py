@@ -17,10 +17,16 @@ def show_module():
     elif st.session_state.current_module == "zus":
         officer_module.officer_module()
 
-st.sidebar.title("Nawigacja")
-if st.sidebar.button("👤\nObywatel", use_container_width=True):
+st.sidebar.image("static/zus_logo.png", use_container_width=True)
+
+citizen_type = "primary" if st.session_state.current_module == "obywatel" else "secondary"
+zus_type = "primary" if st.session_state.current_module == "zus" else "secondary"
+
+if st.sidebar.button("👤\nObywatel", use_container_width=True, type=citizen_type):
     st.session_state.current_module = "obywatel"
-if st.sidebar.button("🏢\nZUS", use_container_width=True):
+    st.rerun()
+if st.sidebar.button("🏢\nZUS", use_container_width=True, type=zus_type):
     st.session_state.current_module = "zus"
+    st.rerun()
 
 show_module()
