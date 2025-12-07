@@ -30,7 +30,6 @@ def citizen_module():
         st.session_state.accident_notification_pdf = None
 
     if st.session_state.selected_path is None:
-        st.write("Witaj! Jestem wirtualnym asystentem ZUS.")
         st.write("Wybierz rodzaj zgłoszenia:")
         
         col1, col2, _ = st.columns([1, 1, 3])
