@@ -82,23 +82,25 @@ def citizen_module():
     if st.session_state.conversation_finished and st.session_state.messages:
         st.subheader("Pobierz dokumenty")
 
-        explanation_pdf = generate_explanation_pdf(st.session_state.messages)
-        st.download_button(
-            label="Pobierz Wyjaśnienia Poszkodowanego (PDF)",
-            data=explanation_pdf,
-            file_name=f"wyjasnienia_poszkodowanego_{datetime.date.today().strftime('%Y%m%d')}.pdf",
-            mime="application/pdf"
-        )
-
-        if st.session_state.accident_notification_pdf is None:
-             with st.spinner("Generowanie Zawiadomienia o wypadku..."):
-                accident_data = extract_accident_data_for_pdf(st.session_state.messages)
-                st.session_state.accident_notification_pdf = fill_accident_notification_pdf(accident_data)
-        
-        if st.session_state.accident_notification_pdf:
+        if st.session_state.selected_path == "citizen":
+            explanation_pdf = generate_explanation_pdf(st.session_state.messages)
             st.download_button(
-                label="Pobierz Zawiadomienie o Wypadku (PDF)",
-                data=st.session_state.accident_notification_pdf,
-                file_name=f"zawiadomienie_o_wypadku_{datetime.date.today().strftime('%Y%m%d')}.pdf",
+                label="Pobierz Wyjaśnienia Poszkodowanego (PDF)",
+                data=explanation_pdf,
+                file_name=f"wyjasnienia_poszkodowanego_{datetime.date.today().strftime('%Y%m%d')}.pdf",
                 mime="application/pdf"
             )
+
+        if st.session_state.selected_path == "business":
+            if st.session_state.accident_notification_pdf is None:
+                 with st.spinner("Generowanie Zawiadomienia o wypadku..."):
+                    accident_data = extract_accident_data_for_pdf(st.session_state.messages)
+                    st.session_state.accident_notification_pdf = fill_accident_notification_pdf(accident_data)
+            
+            if st.session_state.accident_notification_pdf:
+                st.download_button(
+                    label="Pobierz Zawiadomienie o Wypadku (PDF)",
+                    data=st.session_state.accident_notification_pdf,
+                    file_name=f"zawiadomienie_o_wypadku_{datetime.date.today().strftime('%Y%m%d')}.pdf",
+                    mime="application/pdf"
+                )
