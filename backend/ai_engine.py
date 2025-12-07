@@ -4,7 +4,7 @@ import chromadb
 import google.generativeai as genai
 from dotenv import load_dotenv
 from chromadb.utils import embedding_functions
-from backend.prompts import CITIZEN_SYSTEM_PROMPT, get_officer_system_prompt
+from backend.prompts import CITIZEN_SYSTEM_PROMPT, BUSINESS_SYSTEM_PROMPT, get_officer_system_prompt
 
 load_dotenv()
 
@@ -55,18 +55,19 @@ def find_similar_cases(user_description, n_results=3):
         return "Błąd podczas przeszukiwania archiwum spraw."
 
 
-def get_citizen_chat_response(messages_history):
-    system_prompt = CITIZEN_SYSTEM_PROMPT
+def get_citizen_chat_response(messages_history, system_prompt=CITIZEN_SYSTEM_PROMPT):
     gemini_messages = []
+    system_prompt_added = False
 
-    for i, msg in enumerate(messages_history):
-        if i == 0 and msg["role"] == "user":
-            gemini_messages.append({"role": "user", "parts": [system_prompt + "\n\n" + msg["content"]]})
-        else:
-            gemini_messages.append({
-                "role": "user" if msg["role"] == "user" else "model",
-                "parts": [msg["content"]]
-            })
+    for msg in messages_history:
+        role = "user" if msg["role"] == "user" else "model"
+        content = msg["content"]
+
+        if role == "user" and not system_prompt_added:
+            content = system_prompt + "\n\n" + content
+            system_prompt_added = True
+
+        gemini_messages.append({"role": role, "parts": [content]})
 
     try:
         model = genai.GenerativeModel(MODEL_NAME)
