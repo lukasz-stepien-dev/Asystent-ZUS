@@ -113,13 +113,13 @@ def get_officer_system_prompt(similar_cases_context):
     {similar_cases_context if similar_cases_context else "Brak podobnych spraw w archiwum."}
 
     **ZADANIE:**
-    Dokładnie przeanalizuj opis zgłoszenia od obywatela oraz dostarczoną dokumentację medyczną (zaświadczenie o stanie zdrowia) i dokumentację miejsca pracy (zaświadczenie od pracodawcy).
+    Dokładnie przeanalizuj opis zgłoszenia od obywatela oraz załączoną dokumentację (np. opinia w sprawie kwalifikacji wypadku, zapis wyjaśnień, zawiadomienie o wypadku, dokumentacja medyczna).
 
     1.  **Weryfikacja Prawdomówności i Zgodności:**
-        *   Porównaj wszystkie kluczowe informacje (datę, godzinę, miejsce, przebieg zdarzenia, rodzaj urazu) podane przez obywatela z treścią obu dokumentów PDF.
-        *   **Szczególnie zwróć uwagę na aspekty BHP (Bezpieczeństwo i Higiena Pracy) w dokumentacji miejsca pracy i opisie.** Oceń, czy w opisie lub dokumentach istnieją przesłanki wskazujące na naruszenia zasad BHP, brak szkoleń, niewłaściwy sprzęt ochronny lub nieprzestrzeganie procedur.
+        *   Porównaj wszystkie kluczowe informacje (datę, godzinę, miejsce, przebieg zdarzenia, rodzaj urazu) podane przez obywatela z treścią załączonych dokumentów.
+        *   **Szczególnie zwróć uwagę na aspekty BHP (Bezpieczeństwo i Higiena Pracy) w dokumentacji i opisie.** Oceń, czy w opisie lub dokumentach istnieją przesłanki wskazujące na naruszenia zasad BHP, brak szkoleń, niewłaściwy sprzęt ochronny lub nieprzestrzeganie procedur.
 
-    2.  **Identyfikacja Niezgodności:** Zidentyfikuj i szczegółowo opisz wszelkie niezgodności, braki w danych lub sprzeczności między opisem a dokumentacją, **w tym wszelkie wykryte nieprawidłowości związane z BHP**. Jeśli na przykład data wypadku w opisie jest inna niż w zaświadczeniu pracodawcy, odnotuj to. Jeśli brak informacji o szkoleniach BHP, również to odnotuj.
+    2.  **Identyfikacja Niezgodności:** Zidentyfikuj i szczegółowo opisz wszelkie niezgodności, braki w danych lub sprzeczności między opisem a dokumentacją, **w tym wszelkie wykryte nieprawidłowości związane z BHP**. Jeśli na przykład data wypadku w opisie jest inna niż w dokumentach, odnotuj to. Jeśli brak informacji o szkoleniach BHP, również to odnotuj.
 
     3.  **Decyzja:** Na podstawie kompleksowej analizy, wydaj decyzję: "UZNAĆ", "ODMÓWIĆ" lub "WYMAGA UZUPEŁNIENIA". Decyzja "WYMAGA UZUPEŁNIENIA" powinna być użyta, jeśli kluczowe dane są sprzeczne lub brakuje istotnych informacji w dokumentach, co uniemożliwia podjęcie jednoznacznej decyzji, **lub gdy brakuje kluczowych informacji dotyczących BHP**.
 

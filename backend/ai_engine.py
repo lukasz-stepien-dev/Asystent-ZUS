@@ -78,7 +78,7 @@ def get_citizen_chat_response(messages_history, system_prompt=CITIZEN_SYSTEM_PRO
         return f"Błąd Gemini API: {str(e)}"
 
 
-def analyze_case_for_officer(citizen_description, medical_pdf_text="", workplace_pdf_text=""):
+def analyze_case_for_officer(citizen_description, documentation_text=""):
     similar_cases_context = find_similar_cases(citizen_description)
 
     system_prompt = get_officer_system_prompt(similar_cases_context)
@@ -86,11 +86,8 @@ def analyze_case_for_officer(citizen_description, medical_pdf_text="", workplace
     user_message = f"""
     Opis zgłoszenia od obywatela: {citizen_description}
 
-    Dokumentacja medyczna (PDF):
-    {medical_pdf_text if medical_pdf_text else "Brak dokumentacji medycznej."}
-
-    Dokumentacja miejsca pracy (PDF):
-    {workplace_pdf_text if workplace_pdf_text else "Brak dokumentacji miejsca pracy."}
+    Załączona dokumentacja (PDF):
+    {documentation_text if documentation_text else "Brak załączonej dokumentacji."}
 
     Na podstawie powyższych danych, dokonaj analizy i zwróć decyzję w formacie JSON.
     """

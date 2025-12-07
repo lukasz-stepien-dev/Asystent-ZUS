@@ -15,30 +15,26 @@ def officer_module():
     )
 
     st.markdown("### Wgraj dokumentację")
-    uploaded_medical_file = st.file_uploader("Wgraj dokumentację medyczną (zaświadczenie o stanie zdrowia) - PDF",
-                                             type=['pdf'], key="medical_pdf")
-    uploaded_workplace_file = st.file_uploader("Wgraj dokumentację miejsca pracy (zaświadczenie od pracodawcy) - PDF",
-                                               type=['pdf'], key="workplace_pdf")
+    st.info("Należy wgrać: opinię w sprawie kwalifikacji wypadku, zapis wyjaśnień, zawiadomienie o wypadku.")
+
+    uploaded_files = st.file_uploader("Wgraj dokumenty (PDF) - bez limitu",
+                                      type=['pdf'], accept_multiple_files=True, key="officer_docs")
 
     if st.button("Analizuj sprawę"):
         with st.spinner("Analiza orzecznictwa i dokumentacji..."):
-            medical_pdf_text = ""
-            if uploaded_medical_file:
-                medical_pdf_text = extract_text_from_pdf(uploaded_medical_file)
+            documentation_text = ""
+            if uploaded_files:
+                for uploaded_file in uploaded_files:
+                    text = extract_text_from_pdf(uploaded_file)
+                    documentation_text += f"\n--- DOKUMENT: {uploaded_file.name} ---\n{text}\n"
             else:
-                st.warning("Nie wgrano pliku PDF z dokumentacją medyczną – analiza będzie mniej kompletna.")
-
-            workplace_pdf_text = ""
-            if uploaded_workplace_file:
-                workplace_pdf_text = extract_text_from_pdf(uploaded_workplace_file)
-            else:
-                st.warning("Nie wgrano pliku PDF z dokumentacją miejsca pracy – analiza będzie mniej kompletna.")
+                st.warning("Nie wgrano żadnych dokumentów - analiza będzie mniej kompletna.")
 
             if not citizen_desc_input:
                 st.error("Proszę wprowadzić opis zgłoszenia od obywatela.")
             else:
-                wynik = analyze_case_for_officer(citizen_desc_input, medical_pdf_text, workplace_pdf_text)
-                st.session_state.zus_analysis_result = wynik  # Store result for PDF generation
+                wynik = analyze_case_for_officer(citizen_desc_input, documentation_text)
+                st.session_state.zus_analysis_result = wynik 
 
                 col1, col2 = st.columns(2)
                 with col1:
