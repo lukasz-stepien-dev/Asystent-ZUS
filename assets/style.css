@@ -54,14 +54,12 @@
     background-color: #007a33;
     color: #ffffff !important;
 }
-
-/* Citizen module text size */
 p, .stMarkdown p, .stText, .stChatMessage {
     font-size: 20px !important;
 }
 
-/* Citizen module column buttons */
-div[data-testid="column"] .stButton button, div[data-testid="stColumn"] .stButton button {
+div[data-testid="column"] .stButton button, div[data-testid="stColumn"] .stButton button,
+div[data-testid="column"] .stDownloadButton button, div[data-testid="stColumn"] .stDownloadButton button {
     height: 150px !important;
     min-height: 150px !important;
     max-height: 150px !important;
@@ -71,4 +69,10 @@ div[data-testid="column"] .stButton button, div[data-testid="stColumn"] .stButto
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
+    font-size: 24px !important;
+}
+
+div[data-testid="column"] .stButton button p, div[data-testid="stColumn"] .stButton button p,
+div[data-testid="column"] .stDownloadButton button p, div[data-testid="stColumn"] .stDownloadButton button p {
+    font-size: 24px !important;
 }

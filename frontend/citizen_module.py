@@ -3,6 +3,7 @@ from backend.ai_engine import get_citizen_chat_response, extract_accident_data_f
 from backend.pdf_engine import generate_explanation_pdf, fill_accident_notification_pdf
 from backend.prompts import CITIZEN_SYSTEM_PROMPT, BUSINESS_SYSTEM_PROMPT
 import datetime
+import base64
 
 def citizen_module():
     st.header("Zgłoś wypadek przy pracy")
@@ -84,12 +85,24 @@ def citizen_module():
 
         if st.session_state.selected_path == "citizen":
             explanation_pdf = generate_explanation_pdf(st.session_state.messages)
-            st.download_button(
-                label="Pobierz Wyjaśnienia Poszkodowanego (PDF)",
-                data=explanation_pdf,
-                file_name=f"wyjasnienia_poszkodowanego_{datetime.date.today().strftime('%Y%m%d')}.pdf",
-                mime="application/pdf"
-            )
+            col1, col2 = st.columns(2)
+            with col1:
+                st.download_button(
+                    label="Pobierz Wyjaśnienia Poszkodowanego (PDF)",
+                    data=explanation_pdf,
+                    file_name=f"wyjasnienia_poszkodowanego_{datetime.date.today().strftime('%Y%m%d')}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+            print_citizen = False
+            with col2:
+                if st.button("🖨️ Drukuj Wyjaśnienia", use_container_width=True):
+                    print_citizen = True
+            
+            if print_citizen:
+                base64_pdf = base64.b64encode(explanation_pdf).decode('utf-8')
+                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
+                st.markdown(pdf_display, unsafe_allow_html=True)
 
         if st.session_state.selected_path == "business":
             if st.session_state.accident_notification_pdf is None:
@@ -98,9 +111,21 @@ def citizen_module():
                     st.session_state.accident_notification_pdf = fill_accident_notification_pdf(accident_data)
             
             if st.session_state.accident_notification_pdf:
-                st.download_button(
-                    label="Pobierz Zawiadomienie o Wypadku (PDF)",
-                    data=st.session_state.accident_notification_pdf,
-                    file_name=f"zawiadomienie_o_wypadku_{datetime.date.today().strftime('%Y%m%d')}.pdf",
-                    mime="application/pdf"
-                )
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.download_button(
+                        label="Pobierz Zawiadomienie o Wypadku (PDF)",
+                        data=st.session_state.accident_notification_pdf,
+                        file_name=f"zawiadomienie_o_wypadku_{datetime.date.today().strftime('%Y%m%d')}.pdf",
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                print_business = False
+                with col2:
+                    if st.button("🖨️ Drukuj Zawiadomienie", use_container_width=True):
+                        print_business = True
+                
+                if print_business:
+                    base64_pdf = base64.b64encode(st.session_state.accident_notification_pdf).decode('utf-8')
+                    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
+                    st.markdown(pdf_display, unsafe_allow_html=True)

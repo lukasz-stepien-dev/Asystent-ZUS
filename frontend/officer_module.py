@@ -2,6 +2,7 @@ import streamlit as st
 from backend.ai_engine import analyze_case_for_officer
 from backend.pdf_engine import extract_text_from_pdf, generate_accident_notification_pdf, convert_pdf_to_images
 import datetime
+import base64
 
 def officer_module():
     st.header("Panel Orzecznika - Wsparcie Decyzji")
@@ -27,7 +28,6 @@ def officer_module():
             documentation_images = []
             if uploaded_files:
                 for uploaded_file in uploaded_files:
-                    # Vision analysis
                     uploaded_file.seek(0)
                     images = convert_pdf_to_images(uploaded_file)
                     documentation_images.extend(images)
@@ -76,9 +76,18 @@ def officer_module():
     if "zus_analysis_result" in st.session_state and st.session_state.zus_analysis_result:
         st.subheader("Pobierz Zawiadomienie o Wypadku")
         accident_notification_pdf = generate_accident_notification_pdf(st.session_state.zus_analysis_result)
-        st.download_button(
-            label="Pobierz Zawiadomienie o Wypadku (PDF)",
-            data=accident_notification_pdf,
-            file_name=f"zawiadomienie_o_wypadku_{datetime.date.today().strftime('%Y%m%d')}.pdf",
-            mime="application/pdf"
-        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button(
+                label="Pobierz Zawiadomienie o Wypadku (PDF)",
+                data=accident_notification_pdf,
+                file_name=f"zawiadomienie_o_wypadku_{datetime.date.today().strftime('%Y%m%d')}.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+        with col2:
+            if st.button("🖨️ Drukuj Zawiadomienie", use_container_width=True):
+                base64_pdf = base64.b64encode(accident_notification_pdf).decode('utf-8')
+                pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
+                st.markdown(pdf_display, unsafe_allow_html=True)
