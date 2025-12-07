@@ -11,6 +11,7 @@ def officer_module():
     citizen_desc_input = st.text_area(
         "Opis zgłoszenia (możesz edytować lub wkleić z czatu)",
         value=citizen_desc_from_chat,
+        placeholder="Wprowadź opis zgłoszenie...",
         height=200
     )
 
