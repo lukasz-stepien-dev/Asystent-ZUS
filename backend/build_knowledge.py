@@ -29,12 +29,12 @@ def index_cases():
             full_text += extract_text(os.path.join(folder_path, f))
 
         if full_text:
-            collection.add(
+            collection.upsert(
                 ids=[folder_name],
                 documents=[full_text],
                 metadatas=[{"case_id": folder_name}]
             )
-            print(f"Dodano: {folder_name}")
+            print(f"Zaktualizowano/Dodano: {folder_name}")
 
 
 if __name__ == "__main__":
